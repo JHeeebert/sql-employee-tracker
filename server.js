@@ -225,7 +225,7 @@ const addEmployee = () => {
                     const { firstName, lastName, role, manager, managerId, newManagerFirstName } = answers;
                     if (manager === "new") {
                         const info = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
-                        connection.promise().query(info, [firstName, lastName, role, newManagerFirstName], (err, res) => {
+                        connection.query(info, [newManagerFirstName, managerLastName, role], (err, res) => {
                             if (err) throw err;
                             console.log(chalk.green.bold('Employee added successfully!'));
                             promptUser();
