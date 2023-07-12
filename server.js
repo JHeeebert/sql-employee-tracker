@@ -7,7 +7,7 @@ const chalk = require('chalk');
 
 // Start the app and use chalk to send welcome message
 console.log(chalk.yellow.bold(`====================================`));
-console.log(chalk.blue.bold('Welcome to the Employee Tracker!'));
+console.log(chalk.bold.red('Welcome to the Employee Tracker!'));
 console.log(chalk.yellow.bold(`====================================`));
 connection.connect((err) => {
     if (err) throw err;
@@ -220,7 +220,7 @@ const addEmployee = () => {
                     message: 'What is the manager\'s first name?',
                     when: (answers) => answers.manager === "new",
                 }
-                ])
+            ])
                 .then((answers) => {
                     const { firstName, lastName, role, manager, managerId, newManagerFirstName } = answers;
                     if (manager === "new") {
@@ -240,4 +240,3 @@ const addEmployee = () => {
                 });
         })
 };
-    
