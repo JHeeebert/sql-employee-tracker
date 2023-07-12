@@ -4,7 +4,6 @@ const validate = require('./js/validate');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const chalk = require('chalk');
-const e = require('express');
 
 // Start the app and use chalk to send welcome message
 console.log(chalk.yellow.bold(`====================================`));
@@ -142,3 +141,103 @@ const viewAllDepartments = () => {
         promptUser();
     });
 };
+
+// View all employees by department
+const viewAllEmployeesByDepartment = () => {
+    const info = `SELECT employee.first_name, employee.last_name, department.name AS department FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id ORDER BY employee.id ASC`;
+    connection.query()(info, (err, res) => {
+        if (err) throw err;
+        console.log(chalk.yellow.bold(`====================================`));
+        console.log('                      ' + chalk.green.bold('All Employees By Department'));
+        console.log(chalk.yellow.bold(`====================================`));
+        console.table(res);
+        console.log(chalk.yellow.bold(`====================================`));
+        promptUser();
+    });
+};
+
+// View all department via budget
+const viewDepartmentBudget = () => {
+    console.log(chalk.yellow.bold(`====================================`));
+    console.log('                      ' + chalk.green.bold('All Department Budgets'));
+    console.log(chalk.yellow.bold(`====================================`));
+    const info = 'SELECT departmen.id, AS id department.department_name AS department, SUM(salary) AS budget FROM role INNER JOIN department ON role.department_id = department.id GROUP BY role.department_id';
+    connection.query()(info, (err, res) => {
+        if (err) throw err;
+        console.table(res);
+        console.log(chalk.yellow.bold(`====================================`));
+        promptUser();
+    });
+};
+
+// Add employee
+const addEmployee = () => {
+    const infoRoles = `SELECT id, FROM role`;
+    const infoManagers = `SELECT id, concat(first_name, ' ', last_name) AS name FROM employee`;
+
+    promise.all([connection.promise().query(infoRoles), connection.promise().query(infoManagers)])
+        .then(([rolesRes, managersRes]) => {
+            const roles = rolesRes[0];
+            const managers = managersRes[0];
+
+            inquirer.prompt([
+                {
+                    name: 'firstName',
+                    type: 'input',
+                    message: 'What is the employee\'s first name?'
+                },
+                {
+                    name: 'lastName',
+                    type: 'input',
+                    message: 'What is the employee\'s last name?'
+                },
+                {
+                    name: 'role',
+                    type: 'list',
+                    message: 'What is the employee\'s role?',
+                    choices: roles.map((role) => { ({ name: role.title, value: role.id }) })
+                },
+                {
+                    name: 'manager',
+                    type: 'list',
+                    message: 'Who is the employee\'s manager?',
+                    choices: [
+                        { name: "Yes, Select Manager", value: "existing" },
+                        { name: "No, Select New Manager", value: "new" },
+                        { name: "No Manager", value: null },
+                    ],
+                },
+                {
+                    name: 'managerId',
+                    type: 'list',
+                    message: 'Select a manager for the employee',
+                    choices: managers.map((manager) => { ({ name: manager.name, value: manager.id }) }),
+                    when: (answers) => answers.manager === "existing",
+                },
+                {
+                    name: newManagerFirstName,
+                    type: 'input',
+                    message: 'What is the manager\'s first name?',
+                    when: (answers) => answers.manager === "new",
+                }
+                ])
+                .then((answers) => {
+                    const { firstName, lastName, role, manager, managerId, newManagerFirstName } = answers;
+                    if (manager === "new") {
+                        const info = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                        connection.promise().query(info, [firstName, lastName, role, newManagerFirstName], (err, res) => {
+                            if (err) throw err;
+                            console.log(chalk.green.bold('Employee added successfully!'));
+                            promptUser();
+                        });
+                    }
+                    else {
+                        createEmployee(firstName, lastName, role, managerId);
+                    }
+                })
+                .catch((err) => {
+                    throw err;
+                });
+        })
+};
+    
