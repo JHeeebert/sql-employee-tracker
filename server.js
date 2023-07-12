@@ -41,53 +41,53 @@ const promptUser = () => {
                 ]
             }
         ])
-// Use switch statement to call functions based on user choice
+        // Use switch statement to call functions based on user choice
         .then((answer) => {
-    switch (answer.choice) {
-        case 'View All Employees':
-            viewAllEmployees();
-            break;
-        case 'View All Roles':
-            viewAllRoles();
-            break;
-        case 'View All Departments':
-            viewAllDepartments();
-            break;
-        case 'View All Employees By Department':
-            viewAllEmployeesByDepartment();
-            break;
-        case 'View Department Budgets':
-            viewDepartmentBudgets();
-            break;
-        case 'Update Employee Role':
-            updateEmployeeRole();
-            break;
-        case 'Update Employee Manager':
-            updateEmployeeManager();
-            break;
-        case 'Add Employee':
-            addEmployee();
-            break;
-        case 'Add Role':
-            addRole();
-            break;
-        case 'Add Department':
-            addDepartment();
-            break;
-        case 'Remove Employee':
-            removeEmployee();
-            break;
-        case 'Remove Role':
-            removeRole();
-            break;
-        case 'Remove Department':
-            removeDepartment();
-            break;
-        case 'Exit':
-            connection.end();
-            break;
-    }
-});
+            switch (answer.choice) {
+                case 'View All Employees':
+                    viewAllEmployees();
+                    break;
+                case 'View All Roles':
+                    viewAllRoles();
+                    break;
+                case 'View All Departments':
+                    viewAllDepartments();
+                    break;
+                case 'View All Employees By Department':
+                    viewAllEmployeesByDepartment();
+                    break;
+                case 'View Department Budgets':
+                    viewDepartmentBudgets();
+                    break;
+                case 'Update Employee Role':
+                    updateEmployeeRole();
+                    break;
+                case 'Update Employee Manager':
+                    updateEmployeeManager();
+                    break;
+                case 'Add Employee':
+                    addEmployee();
+                    break;
+                case 'Add Role':
+                    addRole();
+                    break;
+                case 'Add Department':
+                    addDepartment();
+                    break;
+                case 'Remove Employee':
+                    removeEmployee();
+                    break;
+                case 'Remove Role':
+                    removeRole();
+                    break;
+                case 'Remove Department':
+                    removeDepartment();
+                    break;
+                case 'Exit':
+                    connection.end();
+                    break;
+            }
+        });
 };
 
 // View all employees
@@ -98,10 +98,10 @@ const viewAllEmployees = () => {
     role.title, 
     department.name AS department, 
     role.salary, 
-   FROM employee, role, department
-   WHERE department.id = role.department_id
-   AND role.id = employee.role_id
-   ORDER BY employee.id ASC`;
+FROM employee, role, department
+WHERE department.id = role.department_id
+AND role.id = employee.role_id
+ORDER BY employee.id ASC`;
     connection.promise().query(info, (err, res) => {
         if (err) throw err;
         console.log(chalk.yellow.bold(`====================================`));
