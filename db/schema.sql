@@ -1,7 +1,6 @@
 -- Create DATABASE and TABLES for employee_tracker
 DROP DATABASE IF EXISTS employee_tracker;
 CREATE DATABASE employee_tracker;
-
 USE employee_tracker;
 -- CREATE TABLE for departments
 CREATE TABLE departments (
@@ -25,4 +24,3 @@ CREATE TABLE employees (
     manager_id INT,
     FOREIGN KEY (role_id) REFERENCES roles (id),
 );
-
