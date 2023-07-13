@@ -13,14 +13,14 @@ CREATE TABLE roles (
     title VARCHAR(50) NOT NULL,
     salary DECIMAL(10, 2) NOT NULL,
     department_id INT NOT NULL,
-    FOREIGN KEY (department_id) REFERENCES departments (id)
+    FOREIGN KEY (department_id) REFERENCES departments(id)
 );
 --CREATE TABLE for employee
 CREATE TABLE employees (
-    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
-    role_id INT NOT NULL,
+    role_id INT,
     manager_id INT,
     FOREIGN KEY (role_id) REFERENCES roles (id),
 );
