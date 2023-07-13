@@ -114,7 +114,6 @@ ORDER BY employee.id ASC`;
         promptUser();
     });
 };
-
 // View all roles
 const viewAllRoles = () => {
     console.log(chalk.yellow.bold(`====================================`));
@@ -359,6 +358,3 @@ const updateEmployeeRole = () => {
 // Remove role
 
 // Remove department
-
-
-
