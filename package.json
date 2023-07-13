@@ -25,5 +25,7 @@
         "inquirer": "^7.3.3",
         "mysql2": "^2.1.0",
         "console.table": "^0.10.0",
-        "console-table": "^0.1.2"    }
+        "console-table": "^0.1.2",
+        "validator": "^13.9.0"
+    }
 }

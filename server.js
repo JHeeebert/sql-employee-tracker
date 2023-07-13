@@ -83,6 +83,7 @@ const promptUser = () => {
                     removeDepartment();
                     break;
                 case 'Exit':
+                    console.log(chalk.green.bold('Goodbye!' + '\n'));
                     connection.end();
                     break;
             }
@@ -157,7 +158,7 @@ const viewAllEmployeesByDepartment = () => {
 };
 
 // View all department via budget
-const viewDepartmentBudget = () => {
+const viewDepartmentBudgets = () => {
     console.log(chalk.yellow.bold(`====================================`));
     console.log('                      ' + chalk.green.bold('All Department Budgets'));
     console.log(chalk.yellow.bold(`====================================`));
@@ -248,36 +249,24 @@ const addEmployee = () => {
                 };
         })
 };
-// Add new role
+// Add role
 
-// Add new department
-
+// Add department
 
 // Update employee role
 
-
-
 // Update employee manager
-
 
 // Remove employee
 
+// Remove role
 
-// Delete role
-
-
-
-// Delete department
+// Remove department
 
 
 
-// End connection
-function endConnection() {
-    console.log(chalk.yellow.bold(`====================================`));
-    console.log('                      '+ chalk.green.bold('Bye!'));
-    connection.end((err) => {
-        if (err) throw err;
-    }
-    );
+// Exit
+function exit() {
+    console.log(chalk.green.bold('Goodbye!' + '\n'));
+    process.exit();
 }
-endConnection();
