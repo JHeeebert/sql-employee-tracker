@@ -1,6 +1,6 @@
 // impoort dependencies
-const connection = require('./connect/connection');
-const validate = require('./js/validate');
+const connection = require('./db/connection');
+const validate = require('./db/validate');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const chalk = require('chalk');
