@@ -1,6 +1,5 @@
 // impoort dependencies
 const connection = require('./db/connection');
-const validate = require('./db/validate');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const chalk = require('chalk');
@@ -253,7 +252,7 @@ const addEmployee = () => {
 // Add role
 const addRole = () => {
     const info = 'SELECT * FROM department';
-    connection.promise().query(info, (err, res) => {
+    connection.query(info, (err, res) => {
         if (err) throw err;
         const departments = res.map((department) => {
             return {
