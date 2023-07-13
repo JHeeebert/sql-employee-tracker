@@ -238,5 +238,46 @@ const addEmployee = () => {
                 .catch((err) => {
                     throw err;
                 });
+                const createEmployee = (firstName, lastName, role, managerId) => {
+                    const info = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                    connection.query(info, [firstName, lastName, role, managerId], (err, res) => {
+                        if (err) throw err;
+                        console.log(chalk.green.bold('Employee added successfully!'));
+                        promptUser();
+                    } );
+                };
         })
 };
+// Add new role
+
+// Add new department
+
+
+// Update employee role
+
+
+
+// Update employee manager
+
+
+// Remove employee
+
+
+// Delete role
+
+
+
+// Delete department
+
+
+
+// End connection
+function endConnection() {
+    console.log(chalk.yellow.bold(`====================================`));
+    console.log('                      '+ chalk.green.bold('Bye!'));
+    connection.end((err) => {
+        if (err) throw err;
+    }
+    );
+}
+endConnection();
