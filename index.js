@@ -25,10 +25,7 @@ const promptUser = () => {
                     'View All Employees',
                     'View All Roles',
                     'View All Departments',
-                    'View All Employees By Department',
-                    'View Department Budgets',
                     'Update Employee Role',
-                    'Update Employee Manager',
                     'Add Employee',
                     'Add Role',
                     'Add Department',
@@ -51,17 +48,8 @@ const promptUser = () => {
                 case 'View All Departments':
                     viewAllDepartments();
                     break;
-                case 'View All Employees By Department':
-                    viewAllEmployeesByDepartment();
-                    break;
-                case 'View Department Budgets':
-                    viewDepartmentBudgets();
-                    break;
                 case 'Update Employee Role':
                     updateEmployeeRole();
-                    break;
-                case 'Update Employee Manager':
-                    updateEmployeeManager();
                     break;
                 case 'Add Employee':
                     addEmployee();
@@ -84,26 +72,16 @@ const promptUser = () => {
                 case 'Exit':
                     console.log(chalk.yellow.bold(`=============================================`));
                     console.log(chalk.green.bold('Thank you for using the Employee Tracker!'));
-                   console.log(chalk.yellow.bold(`=============================================`));
+                    console.log(chalk.yellow.bold(`=============================================`));
                     connection.end();
                     break;
             }
         });
 };
-
-// View all employees
+// Function to view all employees
 const viewAllEmployees = () => {
-    let info = `SELECT employee.id, 
-    employee.first_name, 
-    employee.last_name, 
-    role.title, 
-    department.name AS department, 
-    role.salary, 
-FROM employee, role, department
-WHERE department.id = role.department_id
-AND role.id = employee.role_id
-ORDER BY employee.id ASC`;
-    connection.promise().query(info, (err, res) => {
+    const info = 'SELECT *, employee.first_name, employee.last_name, role.title AS title, department.name AS department FROM employees INNER JOIN roles ON employee.role_id = role.id INNER JOIN departments ON roles.department_id = department.id';
+    connection.query(info, (err, res) => {
         if (err) throw err;
         console.log(chalk.yellow.bold(`====================================`));
         console.log('                       ' + chalk.green.bold('All Employees'));
@@ -113,29 +91,14 @@ ORDER BY employee.id ASC`;
         promptUser();
     });
 };
-// View all roles
-const viewAllRoles = () => {
-    console.log(chalk.yellow.bold(`====================================`));
-    console.log('                       ' + chalk.green.bold('All Roles'));
-    console.log(chalk.yellow.bold(`====================================`));
-    const info = `SELECT role.id, role.title, department.department_name AS department FROM role INNER JOIN department ON role.department_id = department.id ORDER BY role.id ASC`;
-    connection.promise().query(info, (err, res) => {
-        if (err) throw err;
-        res.forEach(role => {
-            console.log(role.id + " | " + role.title + " | " + role.department);
-            console.log(chalk.yellow.bold(`====================================`));
-            promptUser();
-        });
-    });
-};
+
 
 // View all departments
 const viewAllDepartments = () => {
-    const info = `SELECT department.id, department.department_name AS department FROM department ORDER BY department.id ASC`;
-    connection.promise().query(info, (err, res) => {
+    connection.query('SELECT * FROM departments', (err, res) => {
         if (err) throw err;
         console.log(chalk.yellow.bold(`====================================`));
-        console.log('                       ' + chalk.green.bold('All Departments'));
+        console.log('                      ' + chalk.green.bold('All Departments'));
         console.log(chalk.yellow.bold(`====================================`));
         console.table(res);
         console.log(chalk.yellow.bold(`====================================`));
@@ -143,13 +106,13 @@ const viewAllDepartments = () => {
     });
 };
 
-// View all employees by department
-const viewAllEmployeesByDepartment = () => {
-    const info = `SELECT employee.first_name, employee.last_name, department.name AS department FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN department ON role.department_id = department.id ORDER BY employee.id ASC`;
-    connection.query()(info, (err, res) => {
+// View all roles
+const viewAllRoles = () => {
+    const info = 'SELECT roles.id, roles.title, roles.salary, departments.name AS department FROM roles INNER JOIN departments ON roles.department_id = departments.id';
+    connection.query(info, (err, res) => {
         if (err) throw err;
         console.log(chalk.yellow.bold(`====================================`));
-        console.log('                      ' + chalk.green.bold('All Employees By Department'));
+        console.log('                          ' + chalk.green.bold('All Roles'));
         console.log(chalk.yellow.bold(`====================================`));
         console.table(res);
         console.log(chalk.yellow.bold(`====================================`));
@@ -157,26 +120,49 @@ const viewAllEmployeesByDepartment = () => {
     });
 };
 
-// View all department via budget
-const viewDepartmentBudgets = () => {
-    console.log(chalk.yellow.bold(`====================================`));
-    console.log('                      ' + chalk.green.bold('All Department Budgets'));
-    console.log(chalk.yellow.bold(`====================================`));
-    const info = 'SELECT departmen.id, AS id department.department_name AS department, SUM(salary) AS budget FROM role INNER JOIN department ON role.department_id = department.id GROUP BY role.department_id';
-    connection.query()(info, (err, res) => {
-        if (err) throw err;
-        console.table(res);
-        console.log(chalk.yellow.bold(`====================================`));
-        promptUser();
-    });
+// Update employee role
+const updateEmployeeRole = () => {
+    const infoEmployees = `SELECT id, concat(first_name, ' ', last_name) AS name FROM employees`;
+    const infoRoles = `SELECT id, title FROM roles`;
+    Promise.all([connection.query(infoEmployees), connection.query(infoRoles)])
+        .then(([employeesRes, rolesRes]) => {
+            const employees = employeesRes[0];
+            const roles = rolesRes[0];
+            inquirer.prompt([
+                {
+                    name: 'employee',
+                    type: 'list',
+                    message: 'Which employee\'s role would you like to update?',
+                    choices: employees.map((employee) => { ({ name: employee.name, value: employee.id }) })
+                },
+                {
+                    name: 'role',
+                    type: 'list',
+                    message: 'What is the employee\'s new role?',
+                    choices: roles.map((role) => { ({ name: role.title, value: role.id }) })
+                }
+            ])
+                .then((answers) => {
+                    const { employee, role } = answers;
+                    const info = `UPDATE employees SET role_id = ? WHERE id = ?`;
+                    connection.query(info, [role, employee], (err, res) => {
+                        if (err) throw err;
+                        console.log(chalk.green.bold('Employee role updated successfully!'));
+                        promptUser();
+                    });
+                })
+                .catch((err) => {
+                    throw err;
+                });
+        })
 };
 
 // Add employee
 const addEmployee = () => {
-    const infoRoles = `SELECT id, FROM role`;
-    const infoManagers = `SELECT id, concat(first_name, ' ', last_name) AS name FROM employee`;
+    const infoRoles = `SELECT id, FROM roles`;
+    const infoManagers = `SELECT id, concat(first_name, ' ', last_name) AS name FROM employees`;
 
-    promise.all([connection.promise().query(infoRoles), connection.promise().query(infoManagers)])
+    promise.all([connection.query(infoRoles), connection.query(infoManagers)])
         .then(([rolesRes, managersRes]) => {
             const roles = rolesRes[0];
             const managers = managersRes[0];
@@ -225,7 +211,7 @@ const addEmployee = () => {
                 .then((answers) => {
                     const { firstName, lastName, role, manager, managerId, newManagerFirstName } = answers;
                     if (manager === "new") {
-                        const info = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                        const info = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
                         connection.query(info, [newManagerFirstName, managerLastName, role], (err, res) => {
                             if (err) throw err;
                             console.log(chalk.green.bold('Employee added successfully!'));
@@ -240,7 +226,7 @@ const addEmployee = () => {
                     throw err;
                 });
             const createEmployee = (firstName, lastName, role, managerId) => {
-                const info = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                const info = `INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
                 connection.query(info, [firstName, lastName, role, managerId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.green.bold('Employee added successfully!'));
@@ -251,13 +237,13 @@ const addEmployee = () => {
 };
 // Add role
 const addRole = () => {
-    const info = 'SELECT * FROM department';
+    const info = 'SELECT * FROM departments';
     connection.query(info, (err, res) => {
         if (err) throw err;
-        const departments = res.map((department) => {
+        const departments = res.map((departments) => {
             return {
-                name: department.name,
-                value: department.id
+                name: departments.name,
+                value: departments.id
             }
         });
         inquirer.prompt([
@@ -279,9 +265,9 @@ const addRole = () => {
             }
         ])
             .then((answers) => {
-                const { title, salary, department } = answers;
-                const info = `INSERT INTO role (title, salary, department_id) VALUES (?, ?, ?)`;
-                connection.query(info, [title, salary, department], (err, res) => {
+                const { title, salary, departments } = answers;
+                const info = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+                connection.query(info, [title, salary, departments], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.green.bold('Role added successfully!'));
                     promptUser();
@@ -303,7 +289,7 @@ const addDepartment = () => {
     ])
         .then((answers) => {
             const { name } = answers;
-            const info = `INSERT INTO department (name) VALUES (?)`;
+            const info = `INSERT INTO departments (name) VALUES (?)`;
             connection.query(info, [name], (err, res) => {
                 if (err) throw err;
                 console.log(chalk.green.bold('Department added successfully!'));
@@ -314,43 +300,9 @@ const addDepartment = () => {
             throw err;
         });
 };
-// Update employee role
-const updateEmployeeRole = () => {
-    const infoEmployees = `SELECT id, concat(first_name, ' ', last_name) AS name FROM employee`;    
-    const infoRoles = `SELECT id, title FROM role`;
-    Promise.all([connection.promise().query(infoEmployees), connection.promise().query(infoRoles)])
-        .then(([employeesRes, rolesRes]) => {
-            const employees = employeesRes[0];
-            const roles = rolesRes[0];
-            inquirer.prompt([
-                {
-                    name: 'employee',
-                    type: 'list',
-                    message: 'Which employee\'s role would you like to update?',
-                    choices: employees.map((employee) => { ({ name: employee.name, value: employee.id }) })
-                },
-                {
-                    name: 'role',
-                    type: 'list',
-                    message: 'What is the employee\'s new role?',
-                    choices: roles.map((role) => { ({ name: role.title, value: role.id }) })
-                }
-            ])
-                .then((answers) => {
-                    const { employee, role } = answers;
-                    const info = `UPDATE employee SET role_id = ? WHERE id = ?`;
-                    connection.query(info, [role, employee], (err, res) => {
-                        if (err) throw err;
-                        console.log(chalk.green.bold('Employee role updated successfully!'));
-                        promptUser();
-                    });
-                })
-                .catch((err) => {
-                    throw err;
-                });
-        })
-};
+
 // Update employee manager
+
 
 // Remove employee
 
