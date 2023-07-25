@@ -151,40 +151,40 @@ const viewAllRoles = () => {
 };
 // View employees by manager
 const viewEmployeesByManager = () => {
-    const info = `
+    const managerQuery = `
     SELECT DISTINCT CONCAT(m.first_name, ' ', m.last_name) AS manager_name, m.id AS manager_id
     FROM employee AS e
     LEFT JOIN employee AS m ON e.manager_id = m.id
     WHERE m.id IS NOT NULL
-  `;
-    connection.query(info, (err, employees) => {
+    `;
+    connection.query(managerQuery, (err, managers) => {
         if (err) throw err;
         inquirer.prompt([
             {
-                name: 'manager',
+                name: 'managerId',
                 type: 'list',
                 message: 'Which manager\'s employees would you like to view?',
-                choices: employees.map((employee) => ({ name: employee.manager_name, value: employee.id }))
+                choices: managers.map((manager) => ({ name: manager.manager_name, value: manager.manager_id }))
             }
         ])
             .then((answers) => {
                 const { managerId } = answers;
-                const info = `
-                SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS role, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
-                FROM employee AS e
-                INNER JOIN role AS r ON e.role_id = r.id
-                INNER JOIN department AS d ON r.department_id = d.id
-                LEFT JOIN employee AS m ON e.manager_id = m.id
-                WHERE e.manager_id = ?
-                `;
-                connection.query(info, [managerId], (err, res) => {
+                const employeeQuery = `
+            SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS role, d.name AS department, r.salary, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
+            FROM employee AS e
+            INNER JOIN role AS r ON e.role_id = r.id
+            INNER JOIN department AS d ON r.department_id = d.id
+            LEFT JOIN employee AS m ON e.manager_id = m.id
+            WHERE e.manager_id = ?
+            `;
+                connection.query(employeeQuery, [managerId], (err, employees) => {
                     if (err) throw err;
                     console.log(chalk.yellow.bold(`=====================================================================`));
                     console.log('                     ' + chalk.green.bold('Employees By Manager'));
                     console.log(chalk.yellow.bold(`=====================================================================`));
-                    console.table(res);
+                    console.table(employees);
                     console.log(chalk.yellow.bold(`=====================================================================`));
-                    promptUser();
+                    promptUser(); // Make sure the promptUser function is defined and works correctly
                 });
             })
             .catch((err) => {
@@ -194,15 +194,13 @@ const viewEmployeesByManager = () => {
 };
 // View employees by department
 const viewEmployeesByDepartment = () => {
-    const info = `
-    SELECT d.id, d.name
-    FROM department AS d
-    `;
+    const info = `SELECT id, name FROM department`;
     connection.query(info, (err, departments) => {
         if (err) throw err;
+
         inquirer.prompt([
             {
-                name: 'department',
+                name: 'departmentId', // Corrected property name
                 type: 'list',
                 message: 'Which department\'s employees would you like to view?',
                 choices: departments.map((department) => ({ name: department.name, value: department.id }))
@@ -211,24 +209,16 @@ const viewEmployeesByDepartment = () => {
             .then((answers) => {
                 const { departmentId } = answers;
                 const info = `
-                SELECT
-                e.id AS id,
-                e.first_name,
-                e.last_name,
-                r.title AS title,
-                d.name AS department,
-                r.salary,
-                CONCAT(m.first_name, ' ', m.last_name) AS manager
+                SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS title, d.name AS department
                 FROM employee AS e
                 INNER JOIN role AS r ON e.role_id = r.id
                 INNER JOIN department AS d ON r.department_id = d.id
-                LEFT JOIN employee AS m ON e.manager_id = m.id
                 WHERE d.id = ?
             `;
                 connection.query(info, [departmentId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.yellow.bold(`=====================================================================`));
-                    console.log('                    ' + chalk.green.bold('Employees By Department'));
+                    console.log('                       ' + chalk.green.bold('Employees By Department'));
                     console.log(chalk.yellow.bold(`=====================================================================`));
                     console.table(res);
                     console.log(chalk.yellow.bold(`=====================================================================`));
@@ -256,18 +246,18 @@ const viewCombinedSalariesByDepartment = () => {
             }
         ])
             .then((answers) => {
-                const { departmentId } = answers;
+                const departmentId = answers.department; // Use the correct variable name here
                 const info = `
-                SELECT d.name AS department, SUM(r.salary) AS combined_salaries
-                FROM employee AS e
-                INNER JOIN role AS r ON e.role_id = r.id
-                INNER JOIN department AS d ON r.department_id = d.id
-                WHERE d.id = ?
-                `;
+            SELECT d.name AS department, SUM(r.salary) AS combined_salaries
+            FROM employee AS e
+            INNER JOIN role AS r ON e.role_id = r.id
+            INNER JOIN department AS d ON r.department_id = d.id
+            WHERE d.id = ?
+            `;
                 connection.query(info, [departmentId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.yellow.bold(`=====================================================================`));
-                    console.log('                  ' + chalk.green.bold('Combined Salaries By Department'));
+                    console.log('                     ' + chalk.green.bold('Combined Salaries By Department'));
                     console.log(chalk.yellow.bold(`=====================================================================`));
                     console.table(res);
                     console.log(chalk.yellow.bold(`=====================================================================`));
@@ -281,27 +271,26 @@ const viewCombinedSalariesByDepartment = () => {
 };
 // Update employee role
 const updateEmployeeRole = () => {
-    // Return an array of employee names and roles
     const infoEmployee = `
     SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, r.title AS role
     FROM employee AS e
     INNER JOIN role AS r ON e.role_id = r.id
-`;
+    `;
     connection.query(infoEmployee, (err, employee) => {
         if (err) throw err;
-        // Return an array of role titles
+
         const infoRole = `SELECT id, title FROM role`;
         connection.query(infoRole, (err, role) => {
             if (err) throw err;
             inquirer.prompt([
                 {
-                    name: 'employee',
+                    name: 'employeeId', // Corrected property name
                     type: 'list',
                     message: 'Which employee\'s role would you like to update?',
                     choices: employee.map((employee) => ({ name: employee.employee_name, value: employee.id }))
                 },
                 {
-                    name: 'role',
+                    name: 'roleId', // Corrected property name
                     type: 'list',
                     message: 'What is the employee\'s new role?',
                     choices: role.map((role) => ({ name: role.title, value: role.id }))
@@ -319,10 +308,9 @@ const updateEmployeeRole = () => {
                 .catch((err) => {
                     throw err;
                 });
-        })
-    })
+        });
+    });
 };
-
 // Add employee
 const addEmployee = () => {
     const infoRole = "SELECT id, title FROM role";
@@ -468,7 +456,6 @@ const addDepartment = () => {
 };
 // Update employee manager
 const updateEmployeeManager = () => {
-    // Return an array of employee names and managers
     const infoEmployee = `
     SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name, CONCAT(m.first_name, ' ', m.last_name) AS manager_name
     FROM employee AS e
@@ -476,18 +463,25 @@ const updateEmployeeManager = () => {
     `;
     connection.query(infoEmployee, (err, employee) => {
         if (err) throw err;
+
         inquirer.prompt([
             {
-                name: 'employee',
+                name: 'employeeId',
                 type: 'list',
                 message: 'Which employee\'s manager would you like to update?',
-                choices: employee.map((employee) => ({ name: employee.employee_name, value: employee.id }))
+                choices: employee.map((employee) => ({
+                    name: `${employee.employee_name} (Current Manager: ${employee.manager_name})`,
+                    value: employee.id
+                }))
             },
             {
-                name: 'manager',
+                name: 'managerId',
                 type: 'list',
                 message: 'Who is the employee\'s new manager?',
-                choices: employee.map((employee) => ({ name: employee.manager_name, value: employee.id }))
+                choices: employee.map((employee) => ({
+                    name: employee.employee_name,
+                    value: employee.id
+                }))
             }
         ])
             .then((answers) => {
@@ -507,19 +501,20 @@ const updateEmployeeManager = () => {
 // Remove employee
 const removeEmployee = () => {
     const info = `
-    SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name
-    FROM employee AS e
-`;
+        SELECT e.id, CONCAT(e.first_name, ' ', e.last_name) AS employee_name
+        FROM employee AS e
+    `;
     connection.query(info, (err, employees) => {
         if (err) throw err;
+
         inquirer.prompt([
             {
                 type: 'list',
-                name: 'employeeId',
+                name: 'employeeId', // Corrected property name
                 message: 'Which employee would you like to remove?',
                 choices: employees.map((employee) => ({
                     name: employee.employee_name,
-                    value: employee.employee_id
+                    value: employee.id // Corrected property name
                 }))
             },
         ])
@@ -529,7 +524,7 @@ const removeEmployee = () => {
                 connection.query(info, [employeeId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.red.bold(`=====================================================================`));
-                    console.log(chalk.green.bold('                   Employee removed successfully!'));
+                    console.log(chalk.green.bold('                       Employee removed successfully!'));
                     console.log(chalk.red.bold(`=====================================================================`));
                     promptUser();
                 });
@@ -547,7 +542,7 @@ const removeRole = () => {
         inquirer.prompt([
             {
                 type: 'list',
-                name: 'roleId',
+                name: 'roleId', // Corrected property name
                 message: 'Which role would you like to remove?',
                 choices: roles.map((role) => ({
                     name: role.title,
@@ -561,7 +556,7 @@ const removeRole = () => {
                 connection.query(info, [roleId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.red.bold(`=====================================================================`));
-                    console.log(chalk.green.bold('                       Role removed successfully!'));
+                    console.log(chalk.green.bold('                        Role removed successfully!'));
                     console.log(chalk.red.bold(`=====================================================================`));
                     promptUser();
                 });
@@ -579,7 +574,7 @@ const removeDepartment = () => {
         inquirer.prompt([
             {
                 type: 'list',
-                name: 'departmentId',
+                name: 'departmentId', // Corrected property name
                 message: 'Which department would you like to remove?',
                 choices: departments.map((department) => ({
                     name: department.name,
@@ -593,7 +588,7 @@ const removeDepartment = () => {
                 connection.query(info, [departmentId], (err, res) => {
                     if (err) throw err;
                     console.log(chalk.red.bold(`=====================================================================`));
-                    console.log(chalk.green.bold('                  Department removed successfully!'));
+                    console.log(chalk.green.bold('                       Department removed successfully!'));
                     console.log(chalk.red.bold(`=====================================================================`));
                     promptUser();
                 });
@@ -602,4 +597,4 @@ const removeDepartment = () => {
                 throw err;
             });
     });
-}
+};
