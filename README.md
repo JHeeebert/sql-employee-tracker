@@ -39,7 +39,7 @@ SO THAT I can organize and plan my business
   ## Preview
 
 https://drive.google.com/file/d/1JFfGfIelKQRKRCDo5lzBl_9H0rDs99z_/view <br>
-<video src="./assets/images/employee_tracker_video.webm" width="320" height="240" controls></video>
+<video src="./assets/images/employee_tracker_video.webm" width="500" height="300" controls></video>
   ## Questions ☎️💻📱
   If you have any questions about the repo, open an issue or contact me directly at 📧 wdfuzz8823@gmail.com 📧. <br>
   You can find more of my work at 🔖 [Jheeebert](https://github.com/Jheeebert/) 🔖. 
