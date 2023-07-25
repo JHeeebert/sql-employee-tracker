@@ -3,6 +3,7 @@ const connection = require('./db/connection');
 const inquirer = require('inquirer');
 const consoleTable = require('console.table');
 const chalk = require('chalk');
+const figlet = require('figlet');
 
 // Start the app and use chalk to send welcome message
 console.log(chalk.yellow.bold(`====================================`));
@@ -12,7 +13,6 @@ connection.connect((err) => {
     if (err) throw err;
     promptUser();
 });
-
 // Prompt user for what they want to do
 const promptUser = () => {
     inquirer
